@@ -7,6 +7,7 @@
 
 #include "I2C.h"
 #include <MKL25Z4.h>
+#include <math.h>
 #include "MMA8451Q.h"
 
 MMA8451Q::MMA8451Q(mma8451q_frequency_t freq, mma8451q_range_t range, mma8451q_power_t power) : i2c(I2C0, MMA8451_I2C_ADDRESS) {
@@ -43,6 +44,40 @@ uint16_t MMA8451Q::getY(){
 
 uint16_t MMA8451Q::getZ(){
 	return (this->i2c.readRegister(OUT_Z_MSB) << 8) | (this->i2c.readRegister(OUT_Z_LSB) >> 2);
+}
+
+float MMA8451Q::getRoll(){
+
+	Xout_14_bit = this->getX();
+	Yout_14_bit = this->getY();
+	Zout_14_bit = this->getZ();
+
+	Xout_g = ((float) Xout_14_bit) / SENSITIVITY_2G;		// Compute X-axis output value in g's
+	Yout_g = ((float) Yout_14_bit) / SENSITIVITY_2G;		// Compute Y-axis output value in g's
+	Zout_g = ((float) Zout_14_bit) / SENSITIVITY_2G;		// Compute Z-axis output value in g's
+
+	if (Zout_g > 0)																	// Equation 38 in the AN3461
+		Roll = atan2 (Yout_g, sqrt (0.01*Xout_g*Xout_g + Zout_g*Zout_g)) * 180 / PI;
+	else
+		Roll = atan2 (Yout_g, - sqrt (0.01*Xout_g*Xout_g + Zout_g*Zout_g)) * 180 / PI;
+
+	return Roll;
+}
+
+float MMA8451Q::getPitch(){
+
+	Xout_14_bit = this->getX();
+	Yout_14_bit = this->getY();
+	Zout_14_bit = this->getZ();
+
+	Xout_g = ((float) Xout_14_bit) / SENSITIVITY_2G;		// Compute X-axis output value in g's
+	Yout_g = ((float) Yout_14_bit) / SENSITIVITY_2G;		// Compute Y-axis output value in g's
+	Zout_g = ((float) Zout_14_bit) / SENSITIVITY_2G;		// Compute Z-axis output value in g's
+
+	Pitch = atan2 (-Xout_g, sqrt (Yout_g*Yout_g + Zout_g*Zout_g)) * 180 / PI;
+
+	return Pitch;
+
 }
 
 void MMA8451Q::calibrate(){

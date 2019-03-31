@@ -21,11 +21,14 @@ private:
 		float proportional = 0, integral = 0, derivative = 0;
 		float setpoint;
 		float kp, ki, kd;
+		float pid_signal;
 
 public:
 	Pid(float kp, float ki, float kd, float setpoint);
 	float CalcPid(float x);
 	float getSetpoint();
+	void setPidSignal(float pidSignal);
+	float getPidSignal();
 };
 
 #endif /* DYNAMIC_SYSTEM_H_ */

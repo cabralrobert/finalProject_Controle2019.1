@@ -17,21 +17,28 @@ float Pid::getSetpoint(){
 	return setpoint;
 }
 
+void Pid::setPidSignal(float pid_signal){
+	this->pid_signal = pid_signal;
+}
+
+float Pid::getPidSignal(){
+	return pid_signal;
+}
+
 float Pid::CalcPid(float x){
 
 	erro = this->setpoint - x;
 
 	proportional = erro * this->kp;
 
-	integral += erro * this->ki;
+	if(integral > 250)	integral = 250;
+	else				integral += erro * this->ki;
 
 	derivative = (lastMeasure - x) * this->kd;
 
 	lastMeasure = x;
 
 	pid = proportional + integral + derivative;
-
-	if(integral > 250)	integral = 250;
 
 	PRINTF("Erro: %f\r\n", erro);
 	PRINTF("P: %.2f\r\n", proportional);

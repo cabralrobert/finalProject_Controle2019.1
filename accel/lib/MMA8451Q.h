@@ -55,7 +55,8 @@
 
 #define CTRL_REG5_INT_CFG_DRDY_MASK	(0x01)
 
-#define SENSITIVITY_2G		  4096
+#define PI							3.14159
+#define SENSITIVITY_2G				4096
 
 typedef enum mma8451q_frequency_t
 {
@@ -87,6 +88,8 @@ public:
 	uint16_t getX();
 	uint16_t getY();
 	uint16_t getZ();
+	float getRoll();
+	float getPitch();
 	void calibrate();
 
 private:
@@ -94,6 +97,8 @@ private:
 	mma8451q_frequency_t freq;
 	mma8451q_range_t range;
 	mma8451q_power_t power;
+	short Xout_14_bit, Yout_14_bit, Zout_14_bit;
+	float Xout_g, Yout_g, Zout_g, Pitch, Roll, Yaw;
 };
 
 #endif /* MMA8451Q_H_ */

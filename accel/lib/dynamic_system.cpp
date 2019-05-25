@@ -50,10 +50,10 @@ float Pid::CalcPid(float input){
 	// Sum of controls
 	output = proportional + integral + derivative;
 
-	if(output > OUTMAX)
+	/*if(output > OUTMAX)
 		output = OUTMAX;
 	else if(output <= OUTMIN)
-		output = OUTMIN;
+		output = OUTMIN;*/
 
 	lastMeasure = input;
 

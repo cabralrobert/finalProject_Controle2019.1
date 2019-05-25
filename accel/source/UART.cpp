@@ -45,10 +45,10 @@ void directionMotors(direction_t dir){
 
 void pwmMotors(float value){
 	if(value > 0){
-		directionMotors(FORWARD);
+		directionMotors(BACK);
 		motors.setDuty(abs(value));
 	} else if(value < 0){
-		directionMotors(BACK);
+		directionMotors(FORWARD);
 		motors.setDuty(abs(value));
 	} else {
 		motors.setDuty(abs(value));

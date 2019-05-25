@@ -9,6 +9,7 @@
 #include <MKL25Z4.h>
 #include <math.h>
 #include "MMA8451Q.h"
+#include "fsl_debug_console.h"
 
 MMA8451Q::MMA8451Q(mma8451q_frequency_t freq, mma8451q_range_t range, mma8451q_power_t power) : i2c(I2C0, MMA8451_I2C_ADDRESS) {
 
@@ -74,7 +75,17 @@ float MMA8451Q::getPitch(){
 	Yout_g = ((float) Yout_14_bit) / SENSITIVITY_2G;		// Compute Y-axis output value in g's
 	Zout_g = ((float) Zout_14_bit) / SENSITIVITY_2G;		// Compute Z-axis output value in g's
 
-	Pitch = atan2 (-Xout_g, sqrt (Yout_g*Yout_g + Zout_g*Zout_g)) * 180 / PI;
+
+
+	if (Zout_g > 0){
+		//PRINTF("NEGATIVO \r\n\n\n");
+		Pitch = atan2 (Xout_g, sqrt (Yout_g*Yout_g + Zout_g*Zout_g)) * 180 / PI;
+	}
+
+	else{
+		//PRINTF("POSITIVO\r\n\n\n");
+		Pitch = atan2 (-Xout_g, sqrt (Yout_g*Yout_g + Zout_g*Zout_g)) * 180 / PI;
+	}
 
 	return Pitch;
 

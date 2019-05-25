@@ -57,10 +57,13 @@ void pwmMotors(float value){
 
 void task1(void *params){
 
+	float controle_pwm;
+
 	MMA8451Q accel;
 	Pid pid(20, 0, 0, -4.5);
 
-	float controle_pwm;
+	accel.setFilter();
+	accel.calibrate();
 
 	// Initialize pins of directions
 	gpio1_motors.setDirection(OUTPUT);

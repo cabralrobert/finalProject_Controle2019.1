@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "board.h"
 #include "peripherals.h"
 #include "pin_mux.h"
@@ -11,64 +12,92 @@
 #include "task.h"
 #include "lib/pwm.h"
 #include "dynamic_system.h"
-#include <math.h>
+#include "gpio.h"
 
 #define TPM_MODULE 		3276
 #define DUTY_MIN 		1
-#define DUTY_MAX 		325
-#define PI				3.14159
-#define SENSITIVITY_2G	4096
 
 xTaskHandle task1_handle = NULL;
 
+/* Objects definitions */
+Pwm motors(TPM2, GPIOB, TPM_PLLFLL, TPM_MODULE, TPM_CLK, PS_128, EDGE_PWM, CHANNEL0);
+Gpio gpio1_motors(GPIOB, 0), gpio2_motors(GPIOB, 1);
+
+enum direction_t {
+	FORWARD = 0,
+	BACK = 1
+};
+
+typedef direction_t direction_t;
+
+void directionMotors(direction_t dir){
+	switch(dir){
+		case FORWARD:
+			gpio1_motors.setValue(LOW);
+			gpio2_motors.setValue(HIGH);
+		break;
+		case BACK:
+			gpio1_motors.setValue(HIGH);
+			gpio2_motors.setValue(LOW);
+		break;
+	}
+}
+
+void pwmMotors(float value){
+	if(value > 0){
+		directionMotors(FORWARD);
+		motors.setDuty(abs(value));
+	} else if(value < 0){
+		directionMotors(BACK);
+		motors.setDuty(abs(value));
+	} else {
+		motors.setDuty(abs(value));
+	}
+}
+
 void task1(void *params){
 
-	short Xout_14_bit = 0, Yout_14_bit = 0, Zout_14_bit = 0;
-	float Xout_g = 0, Yout_g = 0, Zout_g = 0, Pitch = 0;
-	float pid_signal = 0;
+	float controle_pwm;
 
-	Pwm ledred(TPM2, GPIOB, TPM_PLLFLL, TPM_MODULE, TPM_CLK, PS_128, EDGE_PWM, CHANNEL0);
 	MMA8451Q accel;
-	Pid pid(10, 0.009, 20, 45);
+	Pid pid(20, 0, 0, -4.5);
+
+	accel.setFilter();
+	accel.calibrate();
+
+	// Initialize pins of directions
+	gpio1_motors.setDirection(OUTPUT);
+	gpio2_motors.setDirection(OUTPUT);
 
 	/* Initializes TPM */
-	ledred.pwmInit();
+	motors.pwmInit();
 	/* Initializes I / O with the PWM signal */
-	ledred.setMod(18, TPM_PWM_H);
+	motors.setMod(2, TPM_PWM_H);
 
-	ledred.setDuty(DUTY_MIN);
+	/*while(true) {
 
-	while(true) {
+		PRINTF("Pitch: %f\r\n", accel.getPitch());
 
-		//accel.setFilter();
-		//accel.calibrate();
+		pid.setPidSignal(pid.CalcPid(accel.getPitch()));
 
-		Xout_14_bit = accel.getX();
-		Yout_14_bit = accel.getY();
-		Zout_14_bit = accel.getZ();
+		PRINTF("PID: %.2f\r\n\n\n", pid.getPidSignal());
 
-		Xout_g = ((float) Xout_14_bit) / SENSITIVITY_2G;		// Compute X-axis output value in g's
-		Yout_g = ((float) Yout_14_bit) / SENSITIVITY_2G;		// Compute Y-axis output value in g's
-		Zout_g = ((float) Zout_14_bit) / SENSITIVITY_2G;		// Compute Z-axis output value in g's
-		//PRINTF("Accel_X: %f\r\n", Xout_g);
+		controle_pwm = pid.CalcPid(accel.getPitch());
 
-		Pitch = atan2 (-Xout_g, sqrt (Yout_g*Yout_g + Zout_g*Zout_g)) * 180 / PI;       // Equation 37 in the AN3461
+		//motor1.setDuty(750);
+		motors.setDuty(controle_pwm);
 
-		//PRINTF("Raw_int: %d\r\n", Xout_14_bit);
-		//PRINTF("Raw_float: %f\r\n", Xout_g);
-		PRINTF("Pith: %f\r\n", Pitch);
-
-		pid_signal = pid.CalcPid(Pitch);
-
-		PRINTF("PID: %.2f\r\n\n\n", pid_signal);
-
-		if(Pitch > pid.getSetpoint()){
-			ledred.setDuty(TPM_MODULE-pid_signal);
+		if(accel.getPitch() > 0){
+			direction(BACK);
 		} else{
-			ledred.setDuty(DUTY_MIN);
+			direction(FORWARD);
 		}
-	}
+	}*/
 
+	while(true){
+		controle_pwm = pid.CalcPid(accel.getPitch());
+		pwmMotors(controle_pwm);
+	}
 }
 
 int main(void) {

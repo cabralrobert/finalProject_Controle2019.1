@@ -6,8 +6,8 @@
 #include "MKL25Z4.h"
 #include "fsl_debug_console.h"
 
-#define OUTMAX 900
-#define OUTMIN -900
+#define OUTMAX 1000
+#define OUTMIN -1000
 
 Pid::Pid(float kp, float ki, float kd, float setpoint){
 	this->kp = kp;
@@ -28,40 +28,34 @@ float Pid::getPidSignal(){
 	return pid_signal;
 }
 
-float Pid::CalcPid(float input){
+float Pid::CalcPid(float x){
 
-	erro = this->setpoint - input;
+	// Cálculo do erro
+	erro = this->setpoint - x;
 
-	// Proportional
-	proportional = this->kp * erro;
+	// Controle proporcional
+	proportional = erro * this->kp;
 
-	// Integral
-	integral += (this->ki * erro);
+	// Controle integral
+	if(integral > 250)	integral = 250;
+	else				integral += erro * this->ki;
 
-	if(integral > OUTMAX){
-		integral = OUTMAX;
-	} else if(integral <= OUTMIN){
-		integral = OUTMIN;
-	}
+	derivative = (lastMeasure - x) * this->kd;
 
-	// Derivative
-	derivative = this->kd * (input - lastMeasure);
+	lastMeasure = x;
 
-	// Sum of controls
-	output = proportional + integral + derivative;
+	pid = proportional + integral + derivative;
 
-	/*if(output > OUTMAX)
-		output = OUTMAX;
-	else if(output <= OUTMIN)
-		output = OUTMIN;*/
+	if(pid > OUTMAX)
+		pid = OUTMAX;
+	else if(pid <= OUTMIN)
+		pid = OUTMIN;
 
-	lastMeasure = input;
+	//PRINTF("Erro: %f\r\n", erro);
+	//PRINTF("P: %.2f\r\n", proportional);
+	//PRINTF("I: %.2f\r\n", integral);
+	//PRINTF("D: %.2f\r\n", derivative);
 
-	/*PRINTF("Erro: %f\r\n", erro);
-	PRINTF("P: %.2f\r\n", proportional);
-	PRINTF("I: %.2f\r\n", integral);
-	PRINTF("D: %.2f\r\n", derivative);*/
-
-	return output;
+	return pid;
 
 }

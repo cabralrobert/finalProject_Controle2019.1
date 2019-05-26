@@ -17,7 +17,7 @@
 class Pid {
 
 private:
-		float erro, lastMeasure = 0, output;
+		float erro, lastMeasure = 0, pid;
 		float proportional = 0, integral = 0, derivative = 0;
 		float setpoint;
 		float kp, ki, kd;
@@ -25,7 +25,7 @@ private:
 
 public:
 	Pid(float kp, float ki, float kd, float setpoint);
-	float CalcPid(float input);
+	float CalcPid(float x);
 	float getSetpoint();
 	void setPidSignal(float pidSignal);
 	float getPidSignal();

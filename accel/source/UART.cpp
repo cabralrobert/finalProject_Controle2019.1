@@ -93,6 +93,9 @@ void task1(void *params){
 	}*/
 
 	while(true){
+
+		pid.setPidSignal(pid.CalcPid(accel.getPitch()));
+
 		controle_pwm = pid.CalcPid(accel.getPitch());
 		pwmMotors(controle_pwm);
 	}

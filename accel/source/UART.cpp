@@ -44,13 +44,11 @@ void directionMotors(direction_t dir){
 }
 
 void pwmMotors(float value){
-	if(value > 0){
-		directionMotors(FORWARD);
-		motors.setDuty(abs(value));
-	} else if(value < 0){
+	if(value >= 0){
 		directionMotors(BACK);
 		motors.setDuty(abs(value));
-	} else {
+	} else{
+		directionMotors(FORWARD);
 		motors.setDuty(abs(value));
 	}
 }
@@ -60,7 +58,7 @@ void task1(void *params){
 	float controle_pwm;
 
 	MMA8451Q accel;
-	Pid pid(20, 0, 0, -4.5);
+	Pid pid(0, 0, 0, 90);
 
 	accel.setFilter();
 	accel.calibrate();

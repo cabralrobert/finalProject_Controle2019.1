@@ -6,8 +6,8 @@
 #include "MKL25Z4.h"
 #include "fsl_debug_console.h"
 
-#define OUTMAX 900
-#define OUTMIN -900
+#define OUTMAX 3000
+#define OUTMIN -3000
 
 Pid::Pid(float kp, float ki, float kd, float setpoint){
 	this->kp = kp;
@@ -50,10 +50,10 @@ float Pid::CalcPid(float input){
 	// Sum of controls
 	output = proportional + integral + derivative;
 
-	/*if(output > OUTMAX)
+	if(output > OUTMAX)
 		output = OUTMAX;
 	else if(output <= OUTMIN)
-		output = OUTMIN;*/
+		output = OUTMIN;
 
 	lastMeasure = input;
 

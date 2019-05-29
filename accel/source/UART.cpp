@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "board.h"
 #include "peripherals.h"
@@ -43,14 +44,13 @@ void directionMotors(direction_t dir){
 	}
 }
 
-void pwmMotors(float value){
-	if(value >= 0){
+void pwmMotors(float pitch, float value){
+	if(pitch >= 0)
 		directionMotors(BACK);
-		motors.setDuty(abs(value));
-	} else{
+	else
 		directionMotors(FORWARD);
-		motors.setDuty(abs(value));
-	}
+
+	motors.setDuty(abs(value));
 }
 
 void task1(void *params){
@@ -58,7 +58,12 @@ void task1(void *params){
 	float controle_pwm;
 
 	MMA8451Q accel;
-	Pid pid(0, 0, 0, 90);
+	float v1 = 10, v2 = 0.01, v3 = 1;
+//	SCANF("%f", &v1);
+//	SCANF("%f", &v2);
+//	SCANF("%f", &v3);
+//	PRINTF("\r%f %f %f\n", v1, v2, v3);
+	Pid pid(v1, v2, v3, 90);
 
 	accel.setFilter();
 	accel.calibrate();
@@ -72,29 +77,10 @@ void task1(void *params){
 	/* Initializes I / O with the PWM signal */
 	motors.setMod(2, TPM_PWM_H);
 
-	/*while(true) {
-
-		PRINTF("Pitch: %f\r\n", accel.getPitch());
-
-		pid.setPidSignal(pid.CalcPid(accel.getPitch()));
-
-		PRINTF("PID: %.2f\r\n\n\n", pid.getPidSignal());
-
-		controle_pwm = pid.CalcPid(accel.getPitch());
-
-		//motor1.setDuty(750);
-		motors.setDuty(controle_pwm);
-
-		if(accel.getPitch() > 0){
-			direction(BACK);
-		} else{
-			direction(FORWARD);
-		}
-	}*/
-
 	while(true){
+		pid.setPidSignal(pid.CalcPid(accel.getPitch()));
 		controle_pwm = pid.CalcPid(accel.getPitch());
-		pwmMotors(controle_pwm);
+		pwmMotors(accel.getPitch(), controle_pwm);;
 	}
 }
 

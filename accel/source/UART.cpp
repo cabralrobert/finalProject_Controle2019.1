@@ -58,7 +58,9 @@ void task1(void *params){
 	float controle_pwm;
 
 	MMA8451Q accel;
-	float v1 = 10, v2 = 0.01, v3 = 1;
+  
+	// Aceitavel (safe)
+	float v1 = 20, v2 = 0.01, v3 = 1;
 //	SCANF("%f", &v1);
 //	SCANF("%f", &v2);
 //	SCANF("%f", &v3);
